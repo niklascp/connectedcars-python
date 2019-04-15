@@ -2,7 +2,7 @@ from datetime import datetime
 
 import asyncio
 import aiohttp
-from aiohttp.hdrs import USER_AGENT, AUTHORIZATION
+from aiohttp.hdrs import ACCEPT, CONTENT_TYPE, AUTHORIZATION, USER_AGENT
 
 import json
 
@@ -24,10 +24,13 @@ class ConnectedCarsClient(object):
         self.password = password
         self.logger = logging.getLogger(__name__)
         self.token = None
+        self.retry = 0
 
     async def async_refresh_token(self, session):
         try:
             headers = {
+                ACCEPT: 'application/json',
+                CONTENT_TYPE: 'application/json',
                 USER_AGENT: '{}/{}'.format('connectedcars-python', '0.1.0'),
             }
 
@@ -45,7 +48,7 @@ class ConnectedCarsClient(object):
                 self.token = response_data['token']
 
         except:
-            self.logger.exception("While refreshing token.")
+            self.logger.exception("While refreshing token")
             raise
 
     async def async_query(self, query):
@@ -55,25 +58,37 @@ class ConnectedCarsClient(object):
                 if self.token is None:
                     await self.async_refresh_token(session)
 
-                headers = {
-                    USER_AGENT: '{}/{}'.format('connectedcars-python', '0.1.0'),
-                    AUTHORIZATION: 'Bearer {}'.format(self.token),
-                }
-            
-                data = {
-                    'query': query 
-                }
+                while self.retry < 2:
 
-                async with session.post(API_URL,
-                                        headers = headers,
-                                        json = data,
-                                        timeout = API_TIMEOUT) as response:
-                    self.logger.debug("Request '%s' finished with status code %s", response.url, response.status)
-                    response_data = await response.json(encoding = 'utf-8')
-                    return response_data
+                    headers = {
+                        ACCEPT: 'application/json',
+                        CONTENT_TYPE: 'application/json',
+                        USER_AGENT: '{}/{}'.format('connectedcars-python', '0.1.0'),
+                        AUTHORIZATION: 'Bearer {}'.format(self.token),
+                    }
+                
+                    data = {
+                        'query': query 
+                    }
+    
+                    async with session.post(API_URL,
+                                            headers = headers,
+                                            json = data,
+                                            timeout = API_TIMEOUT) as response:
+                        self.logger.debug("Request '%s' finished with status code %s", response.url, response.status)
+
+                        if response.status == 401:
+                            self.logger.debug(await response.text())
+                            await self.async_refresh_token(session)
+                            self.retry = self.retry + 1
+                            continue
+                        else:
+                            response_data = await response.json(encoding = 'utf-8')
+                            self.retry = 0
+                            return response_data
         except:
-            self.logger.exception("While fetching observations")
-
+            self.logger.exception("While executing query")
+            raise
 
     def query(self, query):
         """Fetch the latest observations for a given weather station or location."""
