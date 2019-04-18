@@ -9,6 +9,7 @@ import json
 import logging
 
 from .constants import *
+from .models import Vehicle
 
 class ConnectedCarsClient(object):
     """Python wrapper for the ConnectedCars REST API.
@@ -89,7 +90,18 @@ class ConnectedCarsClient(object):
         except:
             self.logger.exception("While executing query")
             raise
+    
+    async def async_vehicles_overview(self):    
+        response = await self.async_query(QUERY_VEHICLE_OVERVIEW)
+        return [
+            Vehicle.create_from_dict(vehicle_data['vehicle'])
+            for vehicle_data in response['data']['viewer']['vehicles']
+        ]
 
     def query(self, query):
         """Fetch the latest observations for a given weather station or location."""
         return asyncio.get_event_loop().run_until_complete(self.async_query(query))
+
+    def vehicles_overview(self):
+        """Fetch the latest observations for a given weather station or location."""
+        return asyncio.get_event_loop().run_until_complete(self.async_vehicles_overview())

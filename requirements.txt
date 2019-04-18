@@ -1,1 +1,3 @@
 aiohttp
+attrs
+python-dateutil
