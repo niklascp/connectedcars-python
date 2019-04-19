@@ -1,19 +1,64 @@
 import attr
 import datetime
 import dateutil.parser
+import typing
+
+@attr.s
+class VehiclePosition:
+    """Represents a single position of a vehicle at a specific mesurement time."""
+    time : datetime.datetime = attr.ib()
+    latitude : float = attr.ib()
+    longitude : float = attr.ib()
+
+    @classmethod
+    def create_from_dict(cls, dict):
+        """Creates an instance from data in dictionary"""
+        return VehiclePosition(
+            dateutil.parser.parse(dict['time']),
+            float(dict['latitude']),
+            float(dict['longitude'])
+        )
+
+@attr.s
+class VehicleFuelLevel:
+    """Represents the fuel level of a vehicle at a specific measurement time."""
+    time : datetime.datetime = attr.ib()
+    liter : float = attr.ib()
+
+    @classmethod
+    def create_from_dict(cls, dict):
+        """Creates an instance from data in dictionary"""
+        return VehicleFuelLevel(
+            dateutil.parser.parse(dict['time']),
+            float(dict['liter'])
+        )
+
+@attr.s
+class VehicleOdometer:
+    """Represents the odometer state of a vehicle at a specific measurement time."""
+    time : datetime.datetime = attr.ib()
+    odometer : float = attr.ib()
+
+    @classmethod
+    def create_from_dict(cls, dict):
+        """Creates an instance from data in dictionary"""
+        return VehicleOdometer(
+            dateutil.parser.parse(dict['time']),
+            float(dict['odometer'])
+        )
 
 @attr.s
 class Vehicle:
     """Represents a vehicle overview."""
-    id = attr.ib(type=int)
-    licensePlate = attr.ib(init=False)
-    make = attr.ib(init=False)
-    model = attr.ib(init=False)
-    name = attr.ib(init=False)
-    fuelEconomy = attr.ib(init=False, type=int)
-    position = attr.ib(init=False)
-    fuelLevel = attr.ib(init=False)
-    odometer = attr.ib(init=False)
+    id : int = attr.ib()
+    licensePlate : str = attr.ib(init=False)
+    make : str = attr.ib(init=False)
+    model : str = attr.ib(init=False)
+    name : str = attr.ib(init=False)
+    fuelEconomy : float = attr.ib(init=False)
+    position : VehiclePosition = attr.ib(init=False)
+    fuelLevel : VehicleFuelLevel = attr.ib(init=False)
+    odometer : VehicleOdometer = attr.ib(init=False)
     
     @classmethod
     def create_from_dict(cls, dict):
@@ -36,47 +81,3 @@ class Vehicle:
             vehicle.odometer = VehicleOdometer.create_from_dict(dict['odometer'])
 
         return vehicle
-
-@attr.s
-class VehiclePosition:
-    """Represents a single position of a vehicle at a specific mesurement time."""
-    time = attr.ib(type=str)
-    latitude = attr.ib(type=float)
-    longitude = attr.ib(type=float)
-
-    @classmethod
-    def create_from_dict(cls, dict):
-        """Creates an instance from data in dictionary"""
-        return VehiclePosition(
-            dateutil.parser.parse(dict['time']),
-            float(dict['latitude']),
-            float(dict['longitude'])
-        )
-
-@attr.s
-class VehicleFuelLevel:
-    """Represents the fuel level of a vehicle at a specific measurement time."""
-    time = attr.ib(type=datetime.datetime)
-    liter = attr.ib(type=float)
-
-    @classmethod
-    def create_from_dict(cls, dict):
-        """Creates an instance from data in dictionary"""
-        return VehicleFuelLevel(
-            dateutil.parser.parse(dict['time']),
-            float(dict['liter'])
-        )
-
-@attr.s
-class VehicleOdometer:
-    """Represents the odometer state of a vehicle at a specific measurement time."""
-    time = attr.ib(type=datetime.datetime)
-    odometer = attr.ib(type=float)
-
-    @classmethod
-    def create_from_dict(cls, dict):
-        """Creates an instance from data in dictionary"""
-        return VehicleOdometer(
-            dateutil.parser.parse(dict['time']),
-            float(dict['odometer'])
-        )
