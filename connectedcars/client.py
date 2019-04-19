@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from typing import List
+
 import asyncio
 import aiohttp
 from aiohttp.hdrs import ACCEPT, CONTENT_TYPE, AUTHORIZATION, USER_AGENT
@@ -9,7 +11,8 @@ import json
 import logging
 
 from .constants import *
-from .models import Vehicle
+from .models import *
+from .exceptions import *
 
 class ConnectedCarsClient(object):
     """Python wrapper for the ConnectedCars REST API.
@@ -28,6 +31,7 @@ class ConnectedCarsClient(object):
         self.retry = 0
 
     async def async_refresh_token(self, session):
+        """Refresh client token."""
         try:
             headers = {
                 ACCEPT: 'application/json',
@@ -48,9 +52,9 @@ class ConnectedCarsClient(object):
                 response_data = await response.json(encoding = 'utf-8')
                 self.token = response_data['token']
 
-        except:
+        except Exception as e:
             self.logger.exception("While refreshing token")
-            raise
+            raise ConnectedCarsException from e
 
     async def async_query(self, query):
         """Execute the GraphQL query and return results as python dictionary. This also handles auth and token refresh."""
@@ -83,25 +87,30 @@ class ConnectedCarsClient(object):
                             await self.async_refresh_token(session)
                             self.retry = self.retry + 1
                             continue
-                        else:
+                        elif response.status == 200:
                             response_data = await response.json(encoding = 'utf-8')
                             self.retry = 0
                             return response_data
-        except:
+                        else:
+                            raise ConnectedCarsException("Unexpected response: '{}'".format(await response.text()))
+        except Exception as e:
             self.logger.exception("While executing query")
-            raise
+            raise ConnectedCarsException from e
     
-    async def async_vehicles_overview(self):    
+    async def async_vehicles_overview(self) -> List[Vehicle]:    
         response = await self.async_query(QUERY_VEHICLE_OVERVIEW)
-        return [
-            Vehicle.create_from_dict(vehicle_data['vehicle'])
-            for vehicle_data in response['data']['viewer']['vehicles']
-        ]
+        try:
+            return [
+                Vehicle.create_from_dict(vehicle_data['vehicle'])
+                for vehicle_data in response['data']['viewer']['vehicles']
+            ]
+        except KeyError as e:
+            raise ConnectedCarsInvalidResponse from e
 
     def query(self, query):
         """Fetch the latest observations for a given weather station or location."""
         return asyncio.get_event_loop().run_until_complete(self.async_query(query))
 
-    def vehicles_overview(self):
+    def vehicles_overview(self) -> List[Vehicle]:
         """Fetch the latest observations for a given weather station or location."""
         return asyncio.get_event_loop().run_until_complete(self.async_vehicles_overview())
