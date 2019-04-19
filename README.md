@@ -25,7 +25,7 @@ for vehicle in vehicles:
   print(vehicle.make, vehicle.model, vehicle.fuelLevel.liter)
 ```
 
-Could output something like:`
+Could output something like:
 ```
 Volkswagen Golf 38.0
 ```
