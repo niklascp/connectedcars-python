@@ -21,11 +21,12 @@ class ConnectedCarsClient(object):
     official documentation about this API yet, so use at your own risk.
     """
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, namespace):
         """Initialize the class.
         """
         self.username = username
         self.password = password
+        self.namespace = namespace
         self.logger = logging.getLogger(__name__)
         self.token = None
         self.retry = 0
@@ -36,7 +37,8 @@ class ConnectedCarsClient(object):
             headers = {
                 ACCEPT: 'application/json',
                 CONTENT_TYPE: 'application/json',
-                USER_AGENT: '{}/{}'.format('connectedcars-python', '0.1.0'),
+                USER_AGENT: '{}/{}'.format('connectedcars-python', '0.1.1'),
+                HEADER_NAMESPACE: self.namespace
             }
 
             data = {
@@ -49,9 +51,13 @@ class ConnectedCarsClient(object):
                                     json = data,
                                     timeout = API_TIMEOUT) as response:
                 self.logger.debug("Request '%s' finished with status code %s", response.url, response.status)
-                response_data = await response.json(encoding = 'utf-8')
-                self.token = response_data['token']
 
+                if response.status == 200:
+                    response_data = await response.json(encoding = 'utf-8')
+                    self.token = response_data['token']
+                else:
+                    raise ConnectedCarsException("Unexpected response: '{}'".format(await response.text()))
+                    
         except Exception as e:
             self.logger.exception("While refreshing token")
             raise ConnectedCarsException from e
@@ -68,8 +74,9 @@ class ConnectedCarsClient(object):
                     headers = {
                         ACCEPT: 'application/json',
                         CONTENT_TYPE: 'application/json',
-                        USER_AGENT: '{}/{}'.format('connectedcars-python', '0.1.0'),
-                        AUTHORIZATION: 'Bearer {}'.format(self.token),
+                        USER_AGENT: '{}/{}'.format('connectedcars-python', '0.1.1'),
+                        HEADER_NAMESPACE: self.namespace,
+                        AUTHORIZATION: 'Bearer {}'.format(self.token)
                     }
                 
                     data = {
