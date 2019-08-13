@@ -18,7 +18,7 @@ Depends on the car, but examples includes:
 ```python
 from connectedcars import ConnectedCarsClient
 
-client = ConnectedCarsClient(username = 'XXX', password = 'XXX')
+client = ConnectedCarsClient(username = 'XXX', password = 'XXX', namespace = 'XXX')
 vehicles = client.vehicles_overview()
 
 for vehicle in vehicles:
@@ -29,3 +29,8 @@ Could output something like:
 ```
 Volkswagen Golf 38.0
 ```
+
+## Namespaces
+You will need to provide a namespace corresponding to your login. Known namespaces are:
+
+- `semler:minvolkswagen`

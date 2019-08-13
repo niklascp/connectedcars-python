@@ -31,7 +31,7 @@ class ConnectedCarsClient(object):
         self.token = None
         self.retry = 0
 
-    async def async_refresh_token(self, session):
+    async def async_refresh_token(self, session, timeout = API_DEFAULT_TIMEOUT):
         """Refresh client token."""
         try:
             headers = {
@@ -49,7 +49,7 @@ class ConnectedCarsClient(object):
             async with session.post(AUTH_URL,
                                     headers = headers,
                                     json = data,
-                                    timeout = API_TIMEOUT) as response:
+                                    timeout = timeout) as response:
                 self.logger.debug("Request '%s' finished with status code %s", response.url, response.status)
 
                 if response.status == 200:
@@ -62,7 +62,7 @@ class ConnectedCarsClient(object):
             self.logger.exception("While refreshing token")
             raise ConnectedCarsException from e
 
-    async def async_query(self, query):
+    async def async_query(self, query, timeout = API_DEFAULT_TIMEOUT):
         """Execute the GraphQL query and return results as python dictionary. This also handles auth and token refresh."""
         try:
             async with aiohttp.ClientSession() as session:
@@ -74,7 +74,7 @@ class ConnectedCarsClient(object):
                     headers = {
                         ACCEPT: 'application/json',
                         CONTENT_TYPE: 'application/json',
-                        USER_AGENT: '{}/{}'.format('connectedcars-python', '0.1.1'),
+                        USER_AGENT: '{}/{}'.format('connectedcars-python', '0.1.2'),
                         HEADER_NAMESPACE: self.namespace,
                         AUTHORIZATION: 'Bearer {}'.format(self.token)
                     }
@@ -86,7 +86,7 @@ class ConnectedCarsClient(object):
                     async with session.post(API_URL,
                                             headers = headers,
                                             json = data,
-                                            timeout = API_TIMEOUT) as response:
+                                            timeout = timeout) as response:
                         self.logger.debug("Request '%s' finished with status code %s", response.url, response.status)
 
                         if response.status == 401:
@@ -104,8 +104,8 @@ class ConnectedCarsClient(object):
             self.logger.exception("While executing query")
             raise ConnectedCarsException from e
     
-    async def async_vehicles_overview(self) -> List[Vehicle]:    
-        response = await self.async_query(QUERY_VEHICLE_OVERVIEW)
+    async def async_vehicles_overview(self, timeout = API_DEFAULT_TIMEOUT) -> List[Vehicle]:    
+        response = await self.async_query(QUERY_VEHICLE_OVERVIEW, timeout)
         try:
             return [
                 Vehicle.create_from_dict(vehicle_data['vehicle'])
@@ -114,10 +114,10 @@ class ConnectedCarsClient(object):
         except KeyError as e:
             raise ConnectedCarsInvalidResponse from e
 
-    def query(self, query):
+    def query(self, query, timeout = API_DEFAULT_TIMEOUT):
         """Fetch the latest observations for a given weather station or location."""
-        return asyncio.get_event_loop().run_until_complete(self.async_query(query))
+        return asyncio.get_event_loop().run_until_complete(self.async_query(query, timeout))
 
-    def vehicles_overview(self) -> List[Vehicle]:
+    def vehicles_overview(self, timeout = API_DEFAULT_TIMEOUT) -> List[Vehicle]:
         """Fetch the latest observations for a given weather station or location."""
-        return asyncio.get_event_loop().run_until_complete(self.async_vehicles_overview())
+        return asyncio.get_event_loop().run_until_complete(self.async_vehicles_overview(timeout))
