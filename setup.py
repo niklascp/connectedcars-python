@@ -10,7 +10,7 @@ with open('requirements.txt') as file:
 setup(
   name = 'connectedcars',
   packages = ['connectedcars'],
-  version = '0.1.2',
+  version = '0.1.3',
   license = 'MIT',
   description = 'Wrapper for access the Connected Cars API - an AVL/data collection service installed in most new danish vehicles from Audi, Volkswagen, Skoda and SEAT.',
   long_description = long_description,

@@ -67,7 +67,7 @@ class ConnectedCarsClient(object):
         try:
             async with aiohttp.ClientSession() as session:
                 if self.token is None:
-                    await self.async_refresh_token(session)
+                    await self.async_refresh_token(session, timeout)
 
                 while self.retry < 2:
 
@@ -91,7 +91,7 @@ class ConnectedCarsClient(object):
 
                         if response.status == 401:
                             self.logger.debug(await response.text())
-                            await self.async_refresh_token(session)
+                            await self.async_refresh_token(session, timeout)
                             self.retry = self.retry + 1
                             continue
                         elif response.status == 200:
