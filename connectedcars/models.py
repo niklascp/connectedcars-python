@@ -69,7 +69,7 @@ class Vehicle:
         vehicle.make = str(dict['make'])
         vehicle.model = str(dict['model'])
         vehicle.name = str(dict['name'])
-        vehicle.fuelEconomy = float(dict['fuelEconomy'])
+        vehicle.fuelEconomy = float(dict['fuelEconomy']) if dict['fuelEconomy'] is not None else None
 
         if dict['position'] is not None:
             vehicle.position = VehiclePosition.create_from_dict(dict['position'])

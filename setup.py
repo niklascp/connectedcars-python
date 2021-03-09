@@ -10,7 +10,7 @@ with open('requirements.txt') as file:
 setup(
   name = 'connectedcars',
   packages = ['connectedcars'],
-  version = '0.1.3',
+  version = '0.1.5',
   license = 'MIT',
   description = 'Wrapper for access the Connected Cars API - an AVL/data collection service installed in most new danish vehicles from Audi, Volkswagen, Skoda and SEAT.',
   long_description = long_description,
@@ -18,12 +18,13 @@ setup(
   author = 'Niklas Christoffer Petersen',
   author_email = 'nikalscp@gmail.com',
   url = 'https://github.com/niklascp/connectedcars-python',
-  download_url = 'https://github.com/niklascp/connectedcars-python/archive/v0.1.0.tar.gz',
+  download_url = 'https://github.com/niklascp/connectedcars-python/archive/v0.1.4.tar.gz',
   keywords = ['AVL', 'Audi', 'Volkswagen', 'Skoda', 'SEAT'],
   install_requires = install_requires,
   classifiers = [
     'Intended Audience :: Developers',
     'License :: OSI Approved :: MIT License',
-    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
   ],
 )
