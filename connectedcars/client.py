@@ -115,9 +115,9 @@ class ConnectedCarsClient(object):
             raise ConnectedCarsInvalidResponse from e
 
     def query(self, query, timeout = API_DEFAULT_TIMEOUT):
-        """Fetch the latest observations for a given weather station or location."""
-        return asyncio.get_event_loop().run_until_complete(self.async_query(query, timeout))
+        """Run a GraphQL query against the ConnectedCars API and return results."""
+        return asyncio.run(self.async_query(query, timeout))
 
     def vehicles_overview(self, timeout = API_DEFAULT_TIMEOUT) -> List[Vehicle]:
-        """Fetch the latest observations for a given weather station or location."""
-        return asyncio.get_event_loop().run_until_complete(self.async_vehicles_overview(timeout))
+        """Fetch an overview of vehicles from the ConnectedCars API."""
+        return asyncio.run(self.async_vehicles_overview(timeout))
